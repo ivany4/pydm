@@ -39,6 +39,11 @@ class PyDMEnumComboBox(QComboBox, PyDMWritableWidget):
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
         self.contextMenuEvent = self.open_context_menu
 
+        # Because of the way PyQt5 UI parser enumerates combobox items (first adding an item with an empty title
+        # and then resetting that title to the actual text), we can't distinguish it from the regular title change.
+        # This flag helps tracking title change followed immediately after adding a new item.
+        self._new_item_added = False
+
     # Internal methods
     def set_items(self, enums):
         """
@@ -148,4 +153,15 @@ class PyDMEnumComboBox(QComboBox, PyDMWritableWidget):
         index : int
 
         """
-        self.send_value_signal.emit(index)
+        self.send_value_signal[str].emit(self.itemText(index))
+
+    def addItem(self, text, userData=None):
+        super(PyDMEnumComboBox, self).addItem(text, userData)
+        self._new_item_added = True
+
+    def setItemText(self, index, text):
+        super(PyDMEnumComboBox, self).setItemText(index, text)
+        if self._new_item_added:
+            self._new_item_added = False
+            # Recalculate the enums
+            self.enum_strings_changed(tuple(self.itemText(i) for i in range(self.count())))
