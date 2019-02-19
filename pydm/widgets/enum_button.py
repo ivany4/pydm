@@ -47,6 +47,7 @@ class PyDMEnumButton(QWidget, PyDMWritableWidget, WidgetType):
         self._widget_type = WidgetType.PushButton
         self._orientation = Qt.Vertical
         self._widgets = []
+        self._items = []
         self.rebuild_widgets()
 
     def minimumSizeHint(self):
@@ -84,6 +85,23 @@ class PyDMEnumButton(QWidget, PyDMWritableWidget, WidgetType):
             self._widget_type = new_type
             self.rebuild_widgets()
 
+    @Property(str)
+    def items(self):
+        """
+        Comma-separated items to be displayed in the button group
+
+        Returns
+        -------
+        str
+        """
+        return ', '.join(self._items)
+
+    @items.setter
+    def items(self, value: str):
+        if value != self.items:
+            self._items = [x.strip() for x in value.split(',')]
+            self.enum_strings_changed(self._items)
+
     @Property(Qt.Orientation)
     def orientation(self):
         """
@@ -117,7 +135,7 @@ class PyDMEnumButton(QWidget, PyDMWritableWidget, WidgetType):
         id : int
             The clicked button id.
         """
-        self.send_value_signal.emit(id)
+        self.send_value_signal[str].emit(self._items[id])
 
     def clear(self):
         """
@@ -203,7 +221,20 @@ class PyDMEnumButton(QWidget, PyDMWritableWidget, WidgetType):
         """
         super(PyDMEnumButton, self).value_changed(new_val)
         if new_val is not None:
-            btn = self._btn_group.button(new_val)
+            try:
+                idx = self._items.index(new_val)
+            except ValueError:
+                # Predefined items do not contain arrived value
+
+                # This is a hack to remove any checked buttons in the group
+                # Since exclusive button group will enforce one checked button
+                # to remain
+                self._btn_group.setExclusive(False)
+                for btn in self._btn_group.buttons():
+                    btn.setChecked(False)
+                self._btn_group.setExclusive(True)
+                return
+            btn = self._btn_group.button(idx)
             if btn:
                 btn.setChecked(True)
 
