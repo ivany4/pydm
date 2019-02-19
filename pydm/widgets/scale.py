@@ -58,6 +58,10 @@ class QScale(QFrame):
         self._origin_position = 0
 
         self.set_position()
+        self.value = self.scale_indicator.get_value()
+
+    def get_value(self):
+        return self._value
 
     def adjust_transformation(self):
         """
