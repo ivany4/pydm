@@ -7,9 +7,9 @@ class TabWidgetPlugin(PyDMDesignerPlugin):
     populate itself with an initial tab."""
     TabClass = PyDMTabWidget
 
-    def __init__(self, extensions=None):
+    def __init__(self, group=WidgetCategory.CONTAINER, extensions=None):
         super(TabWidgetPlugin, self).__init__(self.TabClass,
-                                              group=WidgetCategory.CONTAINER,
+                                              group=group,
                                               extensions=extensions)
 
     def domXml(self):
