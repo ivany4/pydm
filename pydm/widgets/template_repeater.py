@@ -297,12 +297,17 @@ class PyDMTemplateRepeater(QFrame, PyDMPrimitiveWidget, LayoutType):
                             parent_display.loaded_file())
                     fname = find_file(self._data_source, base_path=base_path)
 
-                    with open(fname) as f:
-                        try:
-                            self.data = json.load(f)
-                        except ValueError:
-                            logger.error('Failed to parse data source file for PyDMTemplateRepeater.')
-                            self.data = []
+                    if not fname:
+                        if not is_qt_designer():
+                            logger.error('Cannot locate data source file for PyDMTemplateRepeater.')
+                        self.data = []
+                    else:
+                        with open(fname) as f:
+                            try:
+                                self.data = json.load(f)
+                            except ValueError:
+                                logger.error('Failed to parse data source file for PyDMTemplateRepeater.')
+                                self.data = []
                 except IOError as e:
                     self.data = []
             else:
