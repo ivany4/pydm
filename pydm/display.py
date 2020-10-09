@@ -94,6 +94,13 @@ def load_ui_file(uifile, macros=None):
     else:
         f = uifile
 
+    # Python 3.7 compatibility. Current directory is not placed on the sys.path automatically
+    # anymore, behavior is different, compared to 3.6, e.g. visible when using promoted widgets
+    # from local files.
+    module_dir = os.path.dirname(os.path.abspath(uifile))
+    if module_dir not in sys.path:
+        sys.path.append(module_dir)
+
     klass, _ = uic.loadUiType(f)
 
     # Python 2.7 compatibility. More info at the following links:
